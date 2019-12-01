@@ -81,6 +81,8 @@ class FullyConnected:
         bias = np.zeros(self.output_size)
         weights = weights_initializer.initialize(self.weights[:, :-1].shape, fan_in, fan_out)
         bias = bias_initializer.initialize(bias.shape, fan_in, fan_out)
+        # expand the dimension of bias vector, so that we could make sure bias vector is a column vector
+        # size: fan_out x 1
         self.weights = np.concatenate((weights, np.expand_dims(bias, axis=1)), axis=1)
 
     def set_optimizer(self, optimizer):
