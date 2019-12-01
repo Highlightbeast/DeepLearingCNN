@@ -1,6 +1,6 @@
 import unittest
 from Layers import *
-# from Optimization import *
+from Optimization import *
 import numpy as np
 from scipy import stats
 from scipy.ndimage.filters import gaussian_filter
@@ -259,34 +259,34 @@ import datetime
 #         self.assertAlmostEqual(loss, 324.3928805, places = 4)
 #
 #
-# class TestOptimizers(unittest.TestCase):
-#
-#     def test_sgd(self):
-#         optimizer = Optimizers.Sgd(1.)
-#
-#         result = optimizer.calculate_update(1., 1.)
-#         np.testing.assert_almost_equal(result, np.array([0.]))
-#
-#         result = optimizer.calculate_update(result, 1.)
-#         np.testing.assert_almost_equal(result, np.array([-1.]))
-#
-#     def test_sgd_with_momentum(self):
-#         optimizer = Optimizers.SgdWithMomentum(1., 0.9)
-#
-#         result = optimizer.calculate_update(1., 1.)
-#         np.testing.assert_almost_equal(result, np.array([0.]))
-#
-#         result = optimizer.calculate_update(result, 1.)
-#         np.testing.assert_almost_equal(result, np.array([-1.9]))
-#
-#     def test_adam(self):
-#         optimizer = Optimizers.Adam(1., 0.01, 0.02)
-#
-#         result = optimizer.calculate_update(1., 1.)
-#         np.testing.assert_almost_equal(result, np.array([0.]))
-#
-#         result = optimizer.calculate_update(result, 1.)
-#         np.testing.assert_almost_equal(result, np.array([-0.99999998000000034]))
+class TestOptimizers(unittest.TestCase):
+
+    def test_sgd(self):
+        optimizer = Optimizers.Sgd(1.)
+
+        result = optimizer.calculate_update(1., 1.)
+        np.testing.assert_almost_equal(result, np.array([0.]))
+
+        result = optimizer.calculate_update(result, 1.)
+        np.testing.assert_almost_equal(result, np.array([-1.]))
+
+    def test_sgd_with_momentum(self):
+        optimizer = Optimizers.SgdWithMomentum(1., 0.9)
+
+        result = optimizer.calculate_update(1., 1.)
+        np.testing.assert_almost_equal(result, np.array([0.]))
+
+        result = optimizer.calculate_update(result, 1.)
+        np.testing.assert_almost_equal(result, np.array([-1.9]))
+
+    def test_adam(self):
+        optimizer = Optimizers.Adam(1., 0.01, 0.02)
+
+        result = optimizer.calculate_update(1., 1.)
+        np.testing.assert_almost_equal(result, np.array([0.]))
+
+        result = optimizer.calculate_update(result, 1.)
+        np.testing.assert_almost_equal(result, np.array([-0.99999998000000034]))
 #
 
 class TestInitializers(unittest.TestCase):
@@ -349,27 +349,27 @@ class TestInitializers(unittest.TestCase):
         p_value = stats.kstest(weights_after_init.flat, 'norm', args=(0, scale)).pvalue
         self.assertGreater(p_value, 0.01)
 
-#
-# class TestFlatten(unittest.TestCase):
-#
-#     def setUp(self):
-#         self.batch_size = 9
-#         self.input_shape = (3, 4, 11)
-#         self.input_tensor = np.array(range(int(np.prod(self.input_shape) * self.batch_size)), dtype=np.float)
-#         self.input_tensor = self.input_tensor.reshape(self.batch_size, *self.input_shape)
-#
-#     def test_flatten_forward(self):
-#         flatten = Flatten.Flatten()
-#         output_tensor = flatten.forward(self.input_tensor)
-#         input_vector = np.array(range(int(np.prod(self.input_shape) * self.batch_size)), dtype=np.float)
-#         input_vector = input_vector.reshape(self.batch_size, np.prod(self.input_shape))
-#         self.assertLessEqual(np.sum(np.abs(output_tensor-input_vector)), 1e-9)
-#
-#     def test_flatten_backward(self):
-#         flatten = Flatten.Flatten()
-#         output_tensor = flatten.forward(self.input_tensor)
-#         backward_tensor = flatten.backward(output_tensor)
-#         self.assertLessEqual(np.sum(np.abs(self.input_tensor - backward_tensor)), 1e-9)
+
+class TestFlatten(unittest.TestCase):
+
+    def setUp(self):
+        self.batch_size = 9
+        self.input_shape = (3, 4, 11)
+        self.input_tensor = np.array(range(int(np.prod(self.input_shape) * self.batch_size)), dtype=np.float)
+        self.input_tensor = self.input_tensor.reshape(self.batch_size, *self.input_shape)
+
+    def test_flatten_forward(self):
+        flatten = Flatten.Flatten()
+        output_tensor = flatten.forward(self.input_tensor)
+        input_vector = np.array(range(int(np.prod(self.input_shape) * self.batch_size)), dtype=np.float)
+        input_vector = input_vector.reshape(self.batch_size, np.prod(self.input_shape))
+        self.assertLessEqual(np.sum(np.abs(output_tensor-input_vector)), 1e-9)
+
+    def test_flatten_backward(self):
+        flatten = Flatten.Flatten()
+        output_tensor = flatten.forward(self.input_tensor)
+        backward_tensor = flatten.backward(output_tensor)
+        self.assertLessEqual(np.sum(np.abs(self.input_tensor - backward_tensor)), 1e-9)
 #
 #
 # class TestConv(unittest.TestCase):
