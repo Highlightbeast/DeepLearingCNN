@@ -10,7 +10,11 @@ class Conv:
         self.convolution_shape = convolution_shape
         self.num_kernels = num_kernels
         # Initialize the parameters of this layer uniformly random in the range[0, 1).
-        # self.weights = np.random.rand(self.num_kernels, self.convolution_shape[0], self.convolution_shape[1], self.convolution_shape[2])
+        # weight shape, each kernel has one weight
+        # each weight shape corresponds to convolution shape
+        # total weight shape corresponds to [num_kernel, convolution shape]
+        # 3D [num_kernels, self.convolution_shape[1], self.convolution_shape[2]]
+        # 2D [num_kernels, self.convolution_shape[1]]
         self.weights = np.random.random(np.concatenate(([self.num_kernels], self.convolution_shape)))
         self.bias = np.random.rand(self.num_kernels)
         self.step_x = None
@@ -22,13 +26,20 @@ class Conv:
         # input_tensor shape
         # 1D:[b,c,y];
         # 2D:[b,c,y,x]
-        # output_tensor shape: [b,H,y,x] y,x are different from x,y in input_tensor
-        # H is num_kernels
+        # output_tensor shape: [b,h,y,x] y,x are different from x,y in input_tensor
+        # h is num_kernels
         self.input_tensor = input_tensor
-        y_pad_size = int((self.convolution_shape[1] - 1) // 2)
 
         if len(self.convolution_shape) == 3:
+            y_pad_size = int((self.convolution_shape[1] - 1) // 2)
             x_pad_size = int((self.convolution_shape[2] - 1) // 2)
+            # different convolution_shape leads to different padding size
+            # odd--> both side is padded with (convolution_size - 1) / 2
+            # even--> one side (convolution_size - 1) / 2; other side (convolution_size - 1) / 2 + 1
+            # 比如convolution_shape(2，3，4)
+            # y方向3，正常padding，（3-1）// 2 = 1上下都来1行1列
+            # x方向讨厌是个偶数4，（4-1）// 2 = 1，要是左右都padding 1行1列不够的，只能左边2个右边1个
+            # 这样correlate或者convolution之后的output size 才会和input size保持不变
             if (self.convolution_shape[1] % 2 == 1) and (self.convolution_shape[2] % 2 == 1):
                 pad_input = np.pad(input_tensor, ((0, 0), (0, 0),
                                                   (y_pad_size, y_pad_size),
@@ -53,6 +64,7 @@ class Conv:
                                                   (y_pad_size_u, y_pad_size),
                                                   (x_pad_size_l, x_pad_size)),
                                    mode='constant', constant_values=0)
+            # 计算output_tensor shape的大小, 如果stride = 1， output size 和input size一样，但是如果有stride，就要这样重新计算
             output_tensor = np.zeros((self.input_tensor.shape[0], self.num_kernels,
                                       ((pad_input.shape[2] - self.convolution_shape[1])//self.stride_shape[0] + 1),
                                       ((pad_input.shape[3] - self.convolution_shape[2])//self.stride_shape[1] + 1)))
@@ -76,9 +88,10 @@ class Conv:
                     batch_temp[h] = temp
                 batch_temp = batch_temp[:, ::self.stride_shape[0], :: self.stride_shape[1]]
                 output_tensor[b] = batch_temp
-            self.input_tensor = input_tensor
+            # self.input_tensor = input_tensor
 
         else:
+            y_pad_size = int((self.convolution_shape[1] - 1) // 2)
             if self.convolution_shape[1] % 2 == 1:
                 pad_input = np.pad(input_tensor, ((0, 0), (0, 0),
                                                   (y_pad_size, y_pad_size)),
@@ -107,7 +120,7 @@ class Conv:
                     batch_temp[h] = temp
                 batch_temp = batch_temp[:, ::self.stride_shape[0]]
                 output_tensor[b] = batch_temp
-            self.input_tensor = input_tensor
+            # self.input_tensor = input_tensor
         return output_tensor
 
                     # third loop over all channels(depth of input)
@@ -144,9 +157,6 @@ class Conv:
         #
         # return output_tensor
 
-    # def backward(self, error_tensor):
-    #     temp = np.zeros(np.concatenate((error_tensor.shape[0], self.num_kernels, self.input_tensor.shape[2:])))
-    #
 
 
 
