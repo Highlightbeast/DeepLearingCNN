@@ -18,8 +18,6 @@ class Conv:
         self.gradient_weights = None
         self.gradient_bias = None
 
-
-
     def forward(self, input_tensor):
         # input_tensor shape
         # 1D:[b,c,y];
@@ -27,17 +25,34 @@ class Conv:
         # output_tensor shape: [b,H,y,x] y,x are different from x,y in input_tensor
         # H is num_kernels
         self.input_tensor = input_tensor
-        # if self.convolution_shape[1] % 2 == 1:
-        #     y_pad_size = int((self.convolution_shape[1] - 1) // 2)
-        # else:
-        #     y_pad_size = int((self.convolution_shape[1]))
         y_pad_size = int((self.convolution_shape[1] - 1) // 2)
-        if len(self.convolution_shape) == 3:
 
-            x_pad_size = int((self.convolution_shape[2] - 1)//2)
-            # if (y_pad_size % 2 == 1) and (x_pad_size % 2 == 1):
-            pad_input = np.pad(input_tensor, ((0, 0), (0, 0), (y_pad_size, y_pad_size), (x_pad_size + 1, x_pad_size)),
-                               mode='constant', constant_values=0)
+        if len(self.convolution_shape) == 3:
+            x_pad_size = int((self.convolution_shape[2] - 1) // 2)
+            if (self.convolution_shape[1] % 2 == 1) and (self.convolution_shape[2] % 2 == 1):
+                pad_input = np.pad(input_tensor, ((0, 0), (0, 0),
+                                                  (y_pad_size, y_pad_size),
+                                                  (x_pad_size, x_pad_size)),
+                                   mode='constant', constant_values=0)
+            elif (self.convolution_shape[1] % 2 == 1) and (self.convolution_shape[2] % 2 == 0):
+                x_pad_size_l = x_pad_size + 1
+                pad_input = np.pad(input_tensor, ((0, 0), (0, 0),
+                                                  (y_pad_size, y_pad_size),
+                                                  (x_pad_size_l, x_pad_size)),
+                                   mode='constant', constant_values=0)
+            elif (self.convolution_shape[1] % 2 == 0) and (self.convolution_shape[2] % 2 == 1):
+                y_pad_size_u = y_pad_size + 1
+                pad_input = np.pad(input_tensor, ((0, 0), (0, 0),
+                                                  (y_pad_size_u, y_pad_size),
+                                                  (x_pad_size, x_pad_size)),
+                                   mode='constant', constant_values=0)
+            else:
+                x_pad_size_l = x_pad_size + 1
+                y_pad_size_u = y_pad_size + 1
+                pad_input = np.pad(input_tensor, ((0, 0), (0, 0),
+                                                  (y_pad_size_u, y_pad_size),
+                                                  (x_pad_size_l, x_pad_size)),
+                                   mode='constant', constant_values=0)
             output_tensor = np.zeros((self.input_tensor.shape[0], self.num_kernels,
                                       ((pad_input.shape[2] - self.convolution_shape[1])//self.stride_shape[0] + 1),
                                       ((pad_input.shape[3] - self.convolution_shape[2])//self.stride_shape[1] + 1)))
@@ -45,8 +60,8 @@ class Conv:
             # first loop over all the batches
             for b in range(self.input_tensor.shape[0]):
                 # second loop over all kernels, which is also the depth of output_tensor
-                batch_temp = np.zeros((self.num_kernels, input_tensor.shape[2], input_tensor.shape[3]))
-                for h in range(self.input_tensor.shape[1]):
+                batch_temp = np.zeros((self.num_kernels, self.input_tensor.shape[2], self.input_tensor.shape[3]))
+                for h in range(self.num_kernels):
                     # 3D convolution or correlation
                     # batch_1 output_tensor [h, y, x]
                     # kernel_1 weights tensor [h, convolution_shape[1], convolution_shape[2]]
@@ -62,19 +77,26 @@ class Conv:
                 batch_temp = batch_temp[:, ::self.stride_shape[0], :: self.stride_shape[1]]
                 output_tensor[b] = batch_temp
             self.input_tensor = input_tensor
-                # input_tensor[b] = input_tensor[:, ::self.stride_shape[0], :: self.stride_shape[1]]
-                # output_tensor[b] = input_tensor[b]
+
         else:
-            pad_input = np.pad(input_tensor, ((0, 0), (0, 0), (y_pad_size, y_pad_size)), mode='constant',
-                               constant_values=0)
+            if self.convolution_shape[1] % 2 == 1:
+                pad_input = np.pad(input_tensor, ((0, 0), (0, 0),
+                                                  (y_pad_size, y_pad_size)),
+                                   mode='constant', constant_values=0)
+            else:
+                y_pad_size_u = y_pad_size + 1
+                pad_input = np.pad(input_tensor, ((0, 0), (0, 0),
+                                                  (y_pad_size_u, y_pad_size)),
+                                   mode='constant', constant_values=0)
+
             output_tensor = np.zeros((self.input_tensor.shape[0], self.num_kernels,
                                       ((pad_input.shape[2] - self.convolution_shape[1])//self.stride_shape[0] + 1)))
 
             # first loop over all the batches
             for b in range(self.input_tensor.shape[0]):
                 # second loop over all kernels, which is also the depth of output_tensor
-                batch_temp = np.zeros((self.num_kernels, input_tensor.shape[2]))
-                for h in range(self.input_tensor.shape[1]):
+                batch_temp = np.zeros((self.num_kernels, self.input_tensor.shape[2]))
+                for h in range(self.num_kernels):
                     # 2D convolution or correlation
                     # batch_1 output_tensor [h, y]
                     # kernel_1 weights tensor [h, convolution_shape[1]]
