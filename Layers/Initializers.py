@@ -2,8 +2,8 @@ import numpy as np
 
 
 class Constant:
-    def __init__(self):
-        self.weight_initialize = 0.1
+    def __init__(self, constant):
+        self.weight_initialize = constant
 
     def initialize(self, weights_shape, fan_in, fan_out):
         initialized_tensor = self.weight_initialize * np.ones(weights_shape)
