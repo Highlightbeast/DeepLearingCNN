@@ -155,8 +155,6 @@ class Conv:
     def initialize(self, weights_initializer, bias_initializer):
         # fan_in = input_channel * kernel_height * kernel_weight
         # fan_out = output_channel * kernel_height * kernel_weight
-        #fan_in = self.input_tensor.shape[1] * self.convolution_shape[1] * self.convolution_shape[2]
-        #fan_out = self.num_kernels * self.convolution_shape[1] * self.convolution_shape[2]
         fan_in = self.weights.shape[1] * np.prod(self.convolution_shape[1:])
         fan_out = self.num_kernels * np.prod(self.convolution_shape[1:])
         self.weights = weights_initializer.initialize(self.weights.shape, fan_in, fan_out)
